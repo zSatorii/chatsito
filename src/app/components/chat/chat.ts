@@ -26,7 +26,19 @@ export class Chat {
 
   trackByMensaje(index: number, mensaje: MensajeChat){}
 
-  formatearMensajeAsistente(mensaje:string){}
+  formatearMensajeAsistente(contenido:string){
+      return contenido
+          .replace(/\n/g, '<br>')
+          .replace(/\*\*(.*?)\\*/g, '<strong>$1</strong>')
+          .replace(/\*(.*?)\*/g, '<em>$1</em>')
+    }
+
+    formatearhora(fecha: Date): string{
+    return fecha.toLocaleDateString('es-ES', {
+      hour: '2-digit',
+      minute: '2-digit'
+    })
+  }
 
   enviarMensaje(){}
 

@@ -9,51 +9,58 @@ import { Router } from '@angular/router';
   styleUrl: './auth.css',
 })
 export class Auth {
+  titulo = ""
+  Autenticando = false
+  MensajeError = ""
 
-  autenticando = false;
-  mensajeError="";
-  auth = false;
+  //Inyeccion de dependencias
 
-  //inyección de dependencias servicios y rutas de navegación
-  private AuthService = inject(AuthService)
+  private authservice = inject(AuthService)
   private router = inject(Router)
 
-  //Función que revisa la autenticación - asíncrona
-  async IniciarSesionConGoogle(): Promise<void> {
-    this.autenticando = true
-    this.mensajeError = ""
+  //Funcion que revisa la autenticacion / asincrona
+  async iniciarSesionConGoogle(): Promise<void> {
+    this.Autenticando = true
+    this.MensajeError = ""
 
     try {
-      //Falta implementar el servicio
+      //Falta implementar el sevicio
+      //const usuario = await this.authservice.iniciarSesionConGoogle()
+      console.log('LLamo a la funcion')
+      const usuario = await this.authservice.iniciarSesion()
 
-      //Vamos a simular un usuario ya creado
+     /* //Vamos a simular un usuario ya creado
+
       let usuario = null
-      usuario = await new Promise ((resolve) =>{
-        setTimeout(()=>resolve({nombre: 'usuario de prueba'}), 1000)
-      })
-      if(usuario) {
+      usuario = await new Promise((resolve) => {
+        setTimeout(() => resolve({ nombre: 'Usuario de prueba' }), 1000)
+      })*/
+      if (usuario) {
         await this.router.navigate(['/chat'])
       } else {
-        this.mensajeError = "Error al autenticar"
-        console.log("Error al autenticar en try")
+        this.MensajeError = "Error al autenticar"
+        console.error("Error al autentificar en try")
       }
+
     } catch (error: any) {
-      //validación de algunos posibles errores 
-      if(error.code === "auth/popup-closed-by-user"){
-        console.error('Error: Cerraste la ventana de emergencia')
-      } if(error.code === "auth/popup-blocked"){
-        console.error("El navegador bloqueo la ventana de emergencia")
+      if (error.code === "auth/popup-closed-by-user") {
+        console.error('Error: Cerraste la ventana emergente')
+      } else if (error.code === "auth/popup-blocked") {
+        console.error('El navegador bloqueo la ventana emergente')
       }
-      else if(error.code == 'auth/network-request-failed'){
-        console.error("Problemas con la conexión a internet")
+      else if (error.code == 'auth/network-request-failed') {
+        console.error('Problemas con la conexion a internet')
       }
     }finally{
-      this.autenticando = false
+      this.Autenticando = false
     }
   }
-
-  /* verificar que si el usuario ya esta autenticado se redirecciona al chat de una vez*/
-  /*ngOnInit(){
-    this.router.navigate(['/chat'])
-  }*/
+  //Verificar que si el usuario ya esta autenticado se redireccione al chat de una vez
+  ngOninit(): void{
+    this.authservice.estaAutenticado$.subscribe(autenticado =>{
+      if (autenticado){
+        this.router.navigate(['/chat'])
+      }
+    })
+  }
 }
