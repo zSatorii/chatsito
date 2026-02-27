@@ -45,8 +45,8 @@ export class FirebaseService {
   }
  }
 
- obtenerMensajesUsuario(){
-  
+ obtenerMensajesUsuario(userId: int): observable${
+  //filtrar que los mensajes que se muestran sean los mensajes del usuario autenticado
  }
 
 }
