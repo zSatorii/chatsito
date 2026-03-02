@@ -1,8 +1,12 @@
-import { Component } from '@angular/core';
+import { Component, ViewChild, ElementRef, contentChild, inject } from '@angular/core';
 import { MensajeChat } from '../../../models/chat';
 import { CommonModule } from '@angular/common';
-import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
-import { FormsModule } from '@angular/forms';
+import {FormsModule} from '@angular/forms';
+import { AuthService } from '../../services/auth';
+import { ChatService } from '../../services/chat';
+import { Router } from '@angular/router';
+import { Subscription } from 'rxjs';
+import { User } from 'firebase/auth';
 
 @Component({
   selector: 'app-chat',
@@ -11,29 +15,74 @@ import { FormsModule } from '@angular/forms';
   styleUrl: './chat.css',
 })
 export class Chat {
-  nombre:string="Johan Castro"
-  email:string="Johan@example.com"
-  manejoErrorImagen(){
-    console.log('Error al cargar la imagen del usuario');
-  }
+
+  private authService = inject(AuthService)
+  private chatService = inject(ChatService)
+  private router = inject(Router)
+
+  usuario : User | null = null
   mensajes: MensajeChat[] = []
   cargandoHistorial = false
-  asistenteEscribiendo = true
+  asistenteEscribiendo = false
   asistenteEnviando = false
   mensajeTexto=""
-  enviandoMensaje = true
-  cerrarSesion(){}
+  mensajeError = ""
 
+  private suscripciones : Subscription[] = []
+
+  private async verificarAutenticacion(): Promise<void>{
+    // a la variable usuario le voy a asignar el servicio de auth y la funcion de obtener usuario
+    this.usuario = this.authService.obtenerUsuario()
+    if (!this.usuario){
+      await this.router.navigate(['/auth'])
+      throw new Error('Usuario no autenticado')
+    } 
+  }
+
+  private async inicializarChat(): Promise<void> {
+    if(!this.usuario){
+      return;
+    }
+    this.cargandoHistorial = true;
+    try {
+      await this.chatService.inicializarChat(this.usuario.uid)
+    } catch (error) {
+      console.error
+    }
+  }
+
+  private debeHacerScroll = true;
+
+  @ViewChild('messagesContainer') messagesContainer! : ElementRef
+
+  private scrollhaciaabajo():void{
+    try{
+      const container = this.messagesContainer?.nativeElement
+      if(container){
+        container.scrollTop = container.scrollHeight
+      }
+    } catch(error){
+      console.error('❌ Error al hacer scroll')
+    }
+  }
+
+
+  ngAfterViewChecked():void{
+    if(this.debeHacerScroll){
+      this.scrollhaciaabajo();
+      this.debeHacerScroll = false
+    }
+  }
   trackByMensaje(index: number, mensaje: MensajeChat){}
 
   formatearMensajeAsistente(contenido:string){
-      return contenido
-          .replace(/\n/g, '<br>')
-          .replace(/\*\*(.*?)\\*/g, '<strong>$1</strong>')
-          .replace(/\*(.*?)\*/g, '<em>$1</em>')
-    }
+    return contenido
+      .replace(/\n/g, '<br>')
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.*?)\*/g, '<em>$1</em>')
+  }
 
-    formatearhora(fecha: Date): string{
+  formatearhora(fecha: Date): string{
     return fecha.toLocaleDateString('es-ES', {
       hour: '2-digit',
       minute: '2-digit'
@@ -41,61 +90,5 @@ export class Chat {
   }
 
   enviarMensaje(){}
-
-  ngOnInit(){
-    this.mensajes = this.generarMensajeDemo();
-  }
-
-  private generarMensajeDemo():MensajeChat[]{
-  const ahora =new Date();
-
-  return [
-    {
-      id:'id1',
-      contenido:'Hola eres el asistente?',
-      tipo: 'Usuario',
-      fechaEnvio: new Date(ahora.getTime()),
-      estado: 'Enviado',
-      usuarioId: 'u1'
-    },{
-      id:'id2',
-      contenido:'Hola soy tu asistente',
-      tipo: 'Asistente',
-      fechaEnvio: new Date(ahora.getTime()),
-      estado: 'Enviado',
-      usuarioId: 'a1'
-    },
-    {
-      id:'id3',
-      contenido:'Dime una palabra aleatoria',
-      tipo: 'Usuario',
-      fechaEnvio: new Date(ahora.getTime()),
-      estado: 'Enviado',
-      usuarioId: 'u1'
-    },{
-      id:'id4',
-      contenido:'español',
-      tipo: 'Asistente',
-      fechaEnvio: new Date(ahora.getTime()),
-      estado: 'Enviado',
-      usuarioId: 'a1'
-    },{
-      id:'id5',
-      contenido:'Dime los numeros del 1 al 10',
-      tipo: 'Usuario',
-      fechaEnvio: new Date(ahora.getTime()),
-      estado: 'Enviado',
-      usuarioId: 'u1'
-    },{
-      id:'id6',
-      contenido:'1, 2, 3, 4, 5, 6, 7, 8, 9, 10',
-      tipo: 'Asistente',
-      fechaEnvio: new Date(ahora.getTime()),
-      estado: 'Enviado',
-      usuarioId: 'a1'
-    }
-  ]
-  }
+  ngOnInit(){}
 }
-
-
