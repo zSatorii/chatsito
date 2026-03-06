@@ -17,6 +17,7 @@ export class FirebaseService {
   // Funcion para guardar el mensaje
   async guardarMensaje(mensaje: MensajeChat): Promise<void>{
     try{
+      console.log('ingreso guardar mensaje')
       // Revisar si viene sin usuarioID
       if(!mensaje.usuarioId){
         // devuelvo que el mensaje debe tener un usuarioId
@@ -28,7 +29,7 @@ export class FirebaseService {
       }
 
 
-      const coleccionMensajes = collection(this.firestore, 'Mensajes')
+      const coleccionMensajes = collection(this.firestore, 'mensajes')
 
       //Preparar el mensaje respecto a las fechas
       const mensajeGuardar={
@@ -40,7 +41,7 @@ export class FirebaseService {
         fechaEnvio: Timestamp.fromDate(mensaje.fechaEnvio)
       };
 
-      const docRef = await addDoc(coleccionMensajes, mensajeGuardar)
+    const docRef = await addDoc(coleccionMensajes, mensajeGuardar)
     }catch(error: any){
       console.error(' Error al guardar el mensaje en firestore')
       console.error('Error details', {

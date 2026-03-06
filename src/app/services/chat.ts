@@ -24,7 +24,7 @@ export class ChatService {
   private cargandoHistorial = false;
 
   private asistenteRespondiendo =  new BehaviorSubject<boolean>(false);
-  private asistenteRespondiendo$ = this.asistenteRespondiendo.asObservable();
+  public asistenteRespondiendo$ = this.asistenteRespondiendo.asObservable();
 
   async inicializarChat(usuarioId: string):Promise<void>{
     if(!this.cargandoHistorial){
@@ -71,9 +71,9 @@ export class ChatService {
     }
     try {
       const mensajeDelUsuario = this.mensajeSubject.value;
-
       const nuevoMensajeEncontrado = [...mensajeDelUsuario, mensajeUsuario]
       this.mensajeSubject.next(nuevoMensajeEncontrado)
+
       try {
         await this.firebaseService.guardarMensaje(mensajeUsuario);
       } catch (firestoreError) {
